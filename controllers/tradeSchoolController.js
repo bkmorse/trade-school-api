@@ -7,17 +7,19 @@ import tradeSchoolService from '../services/tradeSchoolService.js';
  */
 class TradeSchoolController {
   /**
-   * Get all trade schools with optional filtering
+   * Get all trade schools with optional filtering and pagination
    */
   async getAllSchools(request, reply) {
-    const { program, location } = request.query;
+    const { program, location, page, limit } = request.query;
     
-    const schools = await tradeSchoolService.getAllSchools({ program, location });
+    const result = await tradeSchoolService.getAllSchools({ 
+      program, 
+      location, 
+      page, 
+      limit 
+    });
     
-    return {
-      count: schools.length,
-      schools
-    };
+    return result;
   }
 
   /**

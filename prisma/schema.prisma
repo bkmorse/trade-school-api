@@ -12,6 +12,7 @@ datasource db {
 
 model TradeSchool {
   id          Int       @id @default(autoincrement())
+  uuid        String    @unique @default(uuid())
   name        String
   location    String
   programs    String[]

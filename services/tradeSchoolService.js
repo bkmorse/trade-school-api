@@ -1,14 +1,17 @@
-import prisma from '../lib/prisma.js';
+import tradeSchoolRepository from '../repositories/TradeSchoolRepository.js';
+import { PaginationService, calculateSkip } from '../utils/pagination.js';
 
 class TradeSchoolService {
   /**
-   * Get all trade schools with optional filtering
-   * @param {Object} filters - Filter options
-   * @param {string} filters.program - Filter by program name
-   * @param {string} filters.location - Filter by location (case-insensitive)
-   * @returns {Promise<Array>} List of trade schools
+   * Get all trade schools with optional filtering and pagination
+   * @param {Object} options - Filter and pagination options
+   * @param {string} options.program - Filter by program name
+   * @param {string} options.location - Filter by location (case-insensitive)
+   * @param {number} options.page - Page number (default: 1)
+   * @param {number} options.limit - Records per page (default: 15)
+   * @returns {Promise<Object>} Paginated list of trade schools with metadata
    */
-  async getAllSchools({ program, location } = {}) {
+  async getAllSchools({ program, location, page = 1, limit = 15 } = {}) {
     const where = {};
     
     if (program) {
@@ -23,12 +26,32 @@ class TradeSchoolService {
         mode: 'insensitive'
       };
     }
+
+    // Validate pagination parameters
+    const { page: validPage, limit: validLimit } = PaginationService.validatePaginationParams(page, limit);
     
-    return await prisma.tradeSchool.findMany({
-      where,
-      orderBy: {
-        name: 'asc'
-      }
+    // Define select fields (using UUID as external ID)
+    const select = {
+      uuid: true,
+      name: true,
+      location: true,
+      programs: true,
+      website: true,
+      accredited: true
+    };
+    
+    // Use pagination utility for cleaner code
+    return await PaginationService.executePaginatedQuery({
+      countQuery: () => tradeSchoolRepository.count({ where }),
+      dataQuery: () => tradeSchoolRepository.findMany({
+        where,
+        select,
+        orderBy: { name: 'asc' },
+        skip: calculateSkip(validPage, validLimit),
+        take: validLimit
+      }),
+      page: validPage,
+      limit: validLimit
     });
   }
 
@@ -37,11 +60,9 @@ class TradeSchoolService {
    * @param {number} id - School ID
    * @returns {Promise<Object|null>} Trade school or null if not found
    */
-  async getSchoolById(id) {
-    return await prisma.tradeSchool.findUnique({
-      where: {
-        id: parseInt(id)
-      }
+  async getSchoolById(uuid) {
+    return await tradeSchoolRepository.findUniqueByUuid({
+      uuid
     });
   }
 
@@ -50,16 +71,7 @@ class TradeSchoolService {
    * @returns {Promise<Array>} List of unique programs
    */
   async getAllPrograms() {
-    const schools = await prisma.tradeSchool.findMany({
-      select: {
-        programs: true
-      }
-    });
-    
-    const allPrograms = schools.flatMap(school => school.programs);
-    const uniquePrograms = [...new Set(allPrograms)].sort();
-    
-    return uniquePrograms;
+    return await tradeSchoolRepository.getUniquePrograms();
   }
 
   /**
@@ -73,7 +85,7 @@ class TradeSchoolService {
    * @returns {Promise<Object>} Created school
    */
   async createSchool({ name, location, programs, website, accredited = true }) {
-    return await prisma.tradeSchool.create({
+    return await tradeSchoolRepository.create({
       data: {
         name,
         location,
@@ -90,21 +102,11 @@ class TradeSchoolService {
    * @param {Object} data - Data to update
    * @returns {Promise<Object|null>} Updated school or null if not found
    */
-  async updateSchool(id, data) {
+  async updateSchool(uuid, data) {
     try {
-      const updateData = {};
-      
-      if (data.name) updateData.name = data.name;
-      if (data.location) updateData.location = data.location;
-      if (data.programs) updateData.programs = data.programs;
-      if (data.website) updateData.website = data.website;
-      if (data.accredited !== undefined) updateData.accredited = data.accredited;
-      
-      return await prisma.tradeSchool.update({
-        where: {
-          id: parseInt(id)
-        },
-        data: updateData
+      return await tradeSchoolRepository.updateByUuid({
+        uuid,
+        data
       });
     } catch (error) {
       if (error.code === 'P2025') {
@@ -120,12 +122,10 @@ class TradeSchoolService {
    * @param {number} id - School ID
    * @returns {Promise<boolean>} True if deleted, false if not found
    */
-  async deleteSchool(id) {
+  async deleteSchool(uuid) {
     try {
-      await prisma.tradeSchool.delete({
-        where: {
-          id: parseInt(id)
-        }
+      await tradeSchoolRepository.deleteByUuid({
+        uuid
       });
       return true;
     } catch (error) {

@@ -1,225 +1,109 @@
+import { z } from 'zod';
+
 /**
- * JSON Schemas for Trade School API
- * These schemas are used for request validation and response serialization
- * Fastify uses these to validate incoming requests and serialize responses
+ * Zod Schemas for Trade School API
+ * These schemas provide runtime validation with better error messages
+ * and type safety compared to JSON Schema
  */
 
-// Reusable schema definitions
+// Base trade school schema
 const tradeSchoolProperties = {
-  id: { type: 'integer' },
-  name: { type: 'string', minLength: 1, maxLength: 255 },
-  location: { type: 'string', minLength: 1, maxLength: 255 },
-  programs: {
-    type: 'array',
-    items: { type: 'string' },
-    minItems: 1
-  },
-  website: {
-    type: 'string',
-    format: 'uri',
-    pattern: '^https?://'
-  },
-  accredited: { type: 'boolean' },
-  createdAt: { type: 'string', format: 'date-time' },
-  updatedAt: { type: 'string', format: 'date-time' }
+  id: z.string().uuid("Invalid UUID format"),
+  name: z.string().min(1).max(255).trim(),
+  location: z.string().min(1).max(255).trim(),
+  programs: z.array(z.string().min(1)).min(1),
+  website: z.string().url().refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    { message: "Website must start with http:// or https://" }
+  ),
+  accredited: z.boolean().default(true)
 };
 
-// Full trade school object
-const tradeSchool = {
-  type: 'object',
-  properties: tradeSchoolProperties
-};
+// Full trade school schema
+export const tradeSchoolSchema = z.object(tradeSchoolProperties);
 
-// Create school schema
-export const createSchoolSchema = {
-  description: 'Create a new trade school',
-  tags: ['schools'],
-  body: {
-    type: 'object',
-    required: ['name', 'location', 'programs', 'website'],
-    properties: {
-      name: tradeSchoolProperties.name,
-      location: tradeSchoolProperties.location,
-      programs: tradeSchoolProperties.programs,
-      website: tradeSchoolProperties.website,
-      accredited: tradeSchoolProperties.accredited
-    },
-    additionalProperties: false
-  },
-  response: {
-    201: tradeSchool,
-    400: {
-      type: 'object',
-      properties: {
-        statusCode: { type: 'integer' },
-        error: { type: 'string' },
-        message: { type: 'string' }
-      }
-    }
-  }
-};
+// Create school schema (without id, createdAt, updatedAt)
+export const createSchoolSchema = z.object({
+  name: z.string().min(1, "Name is required").max(255).trim(),
+  location: z.string().min(1, "Location is required").max(255).trim(),
+  programs: z.array(z.string().min(1, "Program name cannot be empty")).min(1, "At least one program is required"),
+  website: z.string().url("Must be a valid URL").refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    { message: "Website must start with http:// or https://" }
+  ),
+  accredited: z.boolean().default(true).optional()
+});
 
-// Update school schema
-export const updateSchoolSchema = {
-  description: 'Update a trade school',
-  tags: ['schools'],
-  params: {
-    type: 'object',
-    properties: {
-      id: { type: 'integer' }
-    },
-    required: ['id']
-  },
-  body: {
-    type: 'object',
-    properties: {
-      name: tradeSchoolProperties.name,
-      location: tradeSchoolProperties.location,
-      programs: tradeSchoolProperties.programs,
-      website: tradeSchoolProperties.website,
-      accredited: tradeSchoolProperties.accredited
-    },
-    additionalProperties: false,
-    minProperties: 1  // At least one field must be provided
-  },
-  response: {
-    200: tradeSchool,
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    }
-  }
-};
+// Update school schema (all fields optional)
+export const updateSchoolSchema = z.object({
+  name: z.string().min(1).max(255).trim().optional(),
+  location: z.string().min(1).max(255).trim().optional(),
+  programs: z.array(z.string().min(1)).min(1).optional(),
+  website: z.string().url().refine(
+    (url) => url.startsWith('http://') || url.startsWith('https://'),
+    { message: "Website must start with http:// or https://" }
+  ).optional(),
+  accredited: z.boolean().optional()
+}).refine(
+  (data) => Object.keys(data).length > 0,
+  { message: "At least one field must be provided for update" }
+);
 
-// Get all schools schema
-export const getAllSchoolsSchema = {
-  description: 'Get all trade schools with optional filtering',
-  tags: ['schools'],
-  querystring: {
-    type: 'object',
-    properties: {
-      program: { type: 'string' },
-      location: { type: 'string' }
-    }
-  },
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        count: { type: 'integer' },
-        schools: {
-          type: 'array',
-          items: tradeSchool
-        }
-      }
-    }
-  }
-};
+// Query parameters for filtering schools
+export const schoolQuerySchema = z.object({
+  program: z.string().optional(),
+  location: z.string().optional(),
+  page: z.string().regex(/^\d+$/).transform(Number).optional().default(1),
+  limit: z.string().regex(/^\d+$/).transform(Number).optional().default(15)
+});
 
-// Get school by ID schema
-export const getSchoolByIdSchema = {
-  description: 'Get a single trade school by ID',
-  tags: ['schools'],
-  params: {
-    type: 'object',
-    properties: {
-      id: { type: 'integer' }
-    },
-    required: ['id']
-  },
-  response: {
-    200: tradeSchool,
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    }
-  }
-};
+// URL parameters schema
+export const idParamSchema = z.object({
+  id: z.string().regex(/^\d+$/, "ID must be a number").transform(Number)
+});
 
-// Delete school schema
-export const deleteSchoolSchema = {
-  description: 'Delete a trade school',
-  tags: ['schools'],
-  params: {
-    type: 'object',
-    properties: {
-      id: { type: 'integer' }
-    },
-    required: ['id']
-  },
-  response: {
-    204: {
-      type: 'null',
-      description: 'No content'
-    },
-    404: {
-      type: 'object',
-      properties: {
-        error: { type: 'string' }
-      }
-    }
-  }
-};
+// Response schemas
+export const schoolListResponseSchema = z.object({
+  data: z.array(tradeSchoolSchema),
+  meta: z.object({
+    total: z.number().int().min(0),
+    page: z.number().int().min(1),
+    limit: z.number().int().min(1),
+    lastPage: z.number().int().min(0),
+    hasNextPage: z.boolean(),
+    hasPreviousPage: z.boolean()
+  })
+});
 
-// Get all programs schema
-export const getAllProgramsSchema = {
-  description: 'Get all unique programs',
-  tags: ['programs'],
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        count: { type: 'integer' },
-        programs: {
-          type: 'array',
-          items: { type: 'string' }
-        }
-      }
-    }
-  }
-};
+export const programListResponseSchema = z.object({
+  count: z.number().int().min(0),
+  programs: z.array(z.string())
+});
 
-// Get stats schema
-export const getStatsSchema = {
-  description: 'Get statistics about trade schools',
-  tags: ['stats'],
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        totalSchools: { type: 'integer' },
-        accreditedSchools: { type: 'integer' },
-        totalPrograms: { type: 'integer' }
-      }
-    }
-  }
-};
+export const statsResponseSchema = z.object({
+  totalSchools: z.number().int().min(0),
+  accreditedSchools: z.number().int().min(0),
+  totalPrograms: z.number().int().min(0)
+});
 
-// Health check schema
-export const healthCheckSchema = {
-  description: 'Check API and database health',
-  tags: ['health'],
-  response: {
-    200: {
-      type: 'object',
-      properties: {
-        status: { type: 'string' },
-        database: { type: 'string' },
-        timestamp: { type: 'string', format: 'date-time' }
-      }
-    },
-    503: {
-      type: 'object',
-      properties: {
-        status: { type: 'string' },
-        database: { type: 'string' },
-        timestamp: { type: 'string', format: 'date-time' }
-      }
-    }
-  }
-};
+export const healthCheckResponseSchema = z.object({
+  status: z.enum(['healthy', 'unhealthy']),
+  database: z.enum(['connected', 'disconnected']),
+  timestamp: z.string().datetime()
+});
+
+// Error response schema
+export const errorResponseSchema = z.object({
+  statusCode: z.number().int(),
+  error: z.string(),
+  message: z.string()
+});
+
+// Legacy exports for backward compatibility (if needed)
+export const getAllSchoolsSchema = schoolQuerySchema;
+export const getSchoolByIdSchema = idParamSchema;
+export const deleteSchoolSchema = idParamSchema;
+export const getAllProgramsSchema = z.object({});
+export const getStatsSchema = z.object({});
+export const healthCheckSchema = z.object({});
 

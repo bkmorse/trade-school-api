@@ -1,12 +1,14 @@
 import tradeSchoolController from '../controllers/tradeSchoolController.js';
+import { zodRoute } from '../middleware/validation.js';
 import {
+  tradeSchoolSchema,
   createSchoolSchema,
   updateSchoolSchema,
-  getAllSchoolsSchema,
-  getSchoolByIdSchema,
-  deleteSchoolSchema,
-  getAllProgramsSchema,
-  getStatsSchema
+  schoolQuerySchema,
+  idParamSchema,
+  schoolListResponseSchema,
+  programListResponseSchema,
+  statsResponseSchema
 } from '../schemas/tradeSchool.schema.js';
 
 /**
@@ -17,41 +19,60 @@ import {
  * @param {Object} options - Plugin options
  */
 export default async function tradeSchoolRoutes(fastify, options) {
-  // School CRUD routes
+  // School CRUD routes with Zod validation
   fastify.get('/schools', {
-    schema: getAllSchoolsSchema,
+    ...zodRoute({
+      query: schoolQuerySchema,
+      response: schoolListResponseSchema
+    }),
     handler: tradeSchoolController.getAllSchools
   });
 
   fastify.get('/schools/:id', {
-    schema: getSchoolByIdSchema,
+    ...zodRoute({
+      params: idParamSchema,
+      response: tradeSchoolSchema
+    }),
     handler: tradeSchoolController.getSchoolById
   });
 
   fastify.post('/schools', {
-    schema: createSchoolSchema,
+    ...zodRoute({
+      body: createSchoolSchema,
+      response: tradeSchoolSchema
+    }),
     handler: tradeSchoolController.createSchool
   });
 
   fastify.put('/schools/:id', {
-    schema: updateSchoolSchema,
+    ...zodRoute({
+      params: idParamSchema,
+      body: updateSchoolSchema,
+      response: tradeSchoolSchema
+    }),
     handler: tradeSchoolController.updateSchool
   });
 
   fastify.delete('/schools/:id', {
-    schema: deleteSchoolSchema,
+    ...zodRoute({
+      params: idParamSchema
+    }),
     handler: tradeSchoolController.deleteSchool
   });
 
   // Programs route
   fastify.get('/programs', {
-    schema: getAllProgramsSchema,
+    ...zodRoute({
+      response: programListResponseSchema
+    }),
     handler: tradeSchoolController.getAllPrograms
   });
 
   // Statistics route
   fastify.get('/stats', {
-    schema: getStatsSchema,
+    ...zodRoute({
+      response: statsResponseSchema
+    }),
     handler: tradeSchoolController.getStats
   });
 }
