@@ -1,0 +1,20 @@
+{
+  "/api/programs": {
+    "get": {
+      "tags": ["Programs"],
+      "summary": "List available programs",
+      "description": "Get a list of all unique programs offered across all trade schools",
+      "responses": {
+        "200": {
+          "description": "Programs",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/ProgramListResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

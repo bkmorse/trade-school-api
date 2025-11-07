@@ -1,0 +1,652 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trade School API",
+    "version": "1.0",
+    "description": "HTTP API for managing trade schools, programs, and stats. Validation is performed with Zod in the server; this OpenAPI describes the request/response contracts for frontend consumers."
+  },
+  "servers": [
+    {
+      "url": "http://localhost:3000",
+      "description": "Local"
+    }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "System health and status endpoints"
+    },
+    {
+      "name": "Trade Schools",
+      "description": "CRUD operations for trade schools"
+    },
+    {
+      "name": "Programs",
+      "description": "Program-related endpoints"
+    },
+    {
+      "name": "Statistics",
+      "description": "Statistics and analytics endpoints"
+    }
+  ],
+  "paths": {
+    "/health": {
+      "get": {
+        "tags": [
+          "Health"
+        ],
+        "summary": "Health check",
+        "description": "Check the health status of the API and database connection",
+        "responses": {
+          "200": {
+            "description": "Service health",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HealthCheckResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/programs": {
+      "get": {
+        "tags": [
+          "Programs"
+        ],
+        "summary": "List available programs",
+        "description": "Get a list of all unique programs offered across all trade schools",
+        "responses": {
+          "200": {
+            "description": "Programs",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProgramListResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/stats": {
+      "get": {
+        "tags": [
+          "Statistics"
+        ],
+        "summary": "Retrieve statistics",
+        "description": "Get aggregated statistics about trade schools, including total count, accredited schools, and program counts",
+        "responses": {
+          "200": {
+            "description": "Stats",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatsResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schools": {
+      "get": {
+        "tags": [
+          "Trade Schools"
+        ],
+        "summary": "List trade schools",
+        "description": "Get a paginated list of trade schools with optional filtering by program and location",
+        "parameters": [
+          {
+            "name": "program",
+            "in": "query",
+            "description": "Filter by program name",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "location",
+            "in": "query",
+            "description": "Filter by location (case-insensitive)",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "page",
+            "in": "query",
+            "description": "Page number",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 1
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "description": "Items per page",
+            "schema": {
+              "type": "integer",
+              "minimum": 1,
+              "default": 15
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Paginated list of trade schools",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SchoolListResponse"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Trade Schools"
+        ],
+        "summary": "Create a trade school",
+        "description": "Create a new trade school with the provided information",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateSchool"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created school",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeSchool"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/schools/{uuid}": {
+      "get": {
+        "tags": [
+          "Trade Schools"
+        ],
+        "summary": "Get a school by UUID",
+        "description": "Retrieve a specific trade school by its UUID",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "Trade school UUID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Trade school",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeSchool"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Trade Schools"
+        ],
+        "summary": "Update a school",
+        "description": "Update an existing trade school by UUID",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "Trade school UUID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UpdateSchool"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Updated school",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TradeSchool"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "School not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Trade Schools"
+        ],
+        "summary": "Delete a school",
+        "description": "Delete a trade school by UUID",
+        "parameters": [
+          {
+            "name": "uuid",
+            "in": "path",
+            "required": true,
+            "description": "Trade school UUID",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "School deleted successfully"
+          },
+          "404": {
+            "description": "School not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Error"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "ProgramListResponse": {
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of unique programs"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "string"
+            },
+            "description": "List of unique program names"
+          }
+        },
+        "required": [
+          "count",
+          "programs"
+        ]
+      },
+      "StatsResponse": {
+        "type": "object",
+        "properties": {
+          "totalSchools": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of trade schools"
+          },
+          "accreditedSchools": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Number of accredited schools"
+          },
+          "totalPrograms": {
+            "type": "integer",
+            "minimum": 0,
+            "description": "Total number of unique programs"
+          }
+        },
+        "required": [
+          "totalSchools",
+          "accreditedSchools",
+          "totalPrograms"
+        ]
+      },
+      "HealthCheckResponse": {
+        "type": "object",
+        "properties": {
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "unhealthy"
+            ],
+            "description": "Service health status"
+          },
+          "database": {
+            "type": "string",
+            "enum": [
+              "connected",
+              "disconnected"
+            ],
+            "description": "Database connection status"
+          },
+          "timestamp": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Timestamp of the health check"
+          }
+        },
+        "required": [
+          "status",
+          "database",
+          "timestamp"
+        ]
+      },
+      "Error": {
+        "type": "object",
+        "properties": {
+          "statusCode": {
+            "type": "integer",
+            "description": "HTTP status code"
+          },
+          "error": {
+            "type": "string",
+            "description": "Error type"
+          },
+          "message": {
+            "type": "string",
+            "description": "Error message"
+          },
+          "details": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "field": {
+                  "type": "string"
+                },
+                "message": {
+                  "type": "string"
+                },
+                "code": {
+                  "type": "string"
+                }
+              }
+            },
+            "description": "Detailed validation errors (only present for validation errors)"
+          }
+        },
+        "required": [
+          "statusCode",
+          "error",
+          "message"
+        ]
+      },
+      "TradeSchool": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "integer",
+            "description": "Internal database ID"
+          },
+          "uuid": {
+            "type": "string",
+            "format": "uuid",
+            "description": "Public UUID identifier"
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School name"
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School location"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "List of programs offered"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "School website URL"
+          },
+          "accredited": {
+            "type": "boolean",
+            "description": "Whether the school is accredited"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Creation timestamp"
+          },
+          "updatedAt": {
+            "type": "string",
+            "format": "date-time",
+            "description": "Last update timestamp"
+          }
+        },
+        "required": [
+          "id",
+          "uuid",
+          "name",
+          "location",
+          "programs",
+          "website",
+          "accredited"
+        ]
+      },
+      "CreateSchool": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School name"
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School location"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "List of programs offered"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "School website URL"
+          },
+          "accredited": {
+            "type": "boolean",
+            "default": true,
+            "description": "Whether the school is accredited"
+          }
+        },
+        "required": [
+          "name",
+          "location",
+          "programs",
+          "website"
+        ]
+      },
+      "UpdateSchool": {
+        "type": "object",
+        "properties": {
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School name"
+          },
+          "location": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 255,
+            "description": "School location"
+          },
+          "programs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "minLength": 1
+            },
+            "minItems": 1,
+            "description": "List of programs offered"
+          },
+          "website": {
+            "type": "string",
+            "format": "uri",
+            "description": "School website URL"
+          },
+          "accredited": {
+            "type": "boolean",
+            "description": "Whether the school is accredited"
+          }
+        },
+        "additionalProperties": false
+      },
+      "SchoolListResponse": {
+        "type": "object",
+        "properties": {
+          "data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TradeSchool"
+            },
+            "description": "Array of trade schools"
+          },
+          "meta": {
+            "type": "object",
+            "properties": {
+              "total": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Total number of schools"
+              },
+              "page": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Current page number"
+              },
+              "limit": {
+                "type": "integer",
+                "minimum": 1,
+                "description": "Items per page"
+              },
+              "lastPage": {
+                "type": "integer",
+                "minimum": 0,
+                "description": "Last page number"
+              },
+              "hasNextPage": {
+                "type": "boolean",
+                "description": "Whether there is a next page"
+              },
+              "hasPreviousPage": {
+                "type": "boolean",
+                "description": "Whether there is a previous page"
+              }
+            },
+            "required": [
+              "total",
+              "page",
+              "limit",
+              "lastPage",
+              "hasNextPage",
+              "hasPreviousPage"
+            ]
+          }
+        },
+        "required": [
+          "data",
+          "meta"
+        ]
+      }
+    }
+  }
+}

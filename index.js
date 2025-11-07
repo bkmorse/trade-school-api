@@ -1,9 +1,14 @@
 import 'dotenv/config';
 import Fastify from 'fastify';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import cors from '@fastify/cors';
+import jwt from '@fastify/jwt';
 import prisma from './lib/prisma.js';
 import tradeSchoolController from './controllers/tradeSchoolController.js';
 import tradeSchoolRoutes from './routes/tradeSchool.routes.js';
+import authRoutes from './routes/auth.routes.js';
 import { healthCheckResponseSchema } from './schemas/tradeSchool.schema.js';
 import { zodRoute } from './middleware/validation.js';
 
@@ -16,6 +21,11 @@ const fastify = Fastify({
 // Register CORS
 await fastify.register(cors, {
   origin: true
+});
+
+// Register JWT plugin
+await fastify.register(jwt, {
+  secret: process.env.JWT_SECRET || 'your-secret-key-change-in-production'
 });
 
 // Add Prisma to Fastify instance
@@ -113,6 +123,41 @@ fastify.get('/', async (request, reply) => {
   };
 });
 
+// API documentation JSON (OpenAPI)
+fastify.get('/api/docs.json', async (request, reply) => {
+  try {
+    const __filename = fileURLToPath(import.meta.url);
+    const __dirname = path.dirname(__filename);
+    const openapiPath = path.join(__dirname, 'docs', 'openapi.json');
+    const json = await fs.promises.readFile(openapiPath, 'utf-8');
+    reply.type('application/json').send(json);
+  } catch (err) {
+    request.log.error(err);
+    reply.code(500).send({ statusCode: 500, error: 'Internal Server Error', message: 'Unable to load API docs' });
+  }
+});
+
+// Human-friendly API docs UI (Redoc)
+fastify.get('/api/docs', async (request, reply) => {
+  const html = `<!doctype html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Trade School API Docs</title>
+    <style>
+      body { margin: 0; padding: 0; }
+      .container { height: 100vh; }
+    </style>
+  </head>
+  <body>
+    <redoc spec-url="/api/docs.json" class="container"></redoc>
+    <script src="https://cdn.redoc.ly/redoc/latest/bundles/redoc.standalone.js"></script>
+  </body>
+  </html>`;
+  reply.type('text/html').send(html);
+});
+
 // Health check endpoint with Zod validation
 fastify.get('/health', {
   ...zodRoute({
@@ -121,7 +166,8 @@ fastify.get('/health', {
   handler: tradeSchoolController.healthCheck
 });
 
-// Register route modules with /api prefix
+// Register route modules
+fastify.register(authRoutes, { prefix: '/api' });
 fastify.register(tradeSchoolRoutes, { prefix: '/api' });
 
 // Start server
@@ -132,7 +178,8 @@ const start = async () => {
     
     await fastify.listen({ port, host });
     console.log(`🚀 Server is running on http://localhost:${port}`);
-    console.log(`📚 API Documentation available at http://localhost:${port}/documentation (if @fastify/swagger is installed)`);
+    console.log(`📚 API Documentation (Redoc): http://localhost:${port}/api/docs`);
+    console.log(`🧾 OpenAPI JSON:              http://localhost:${port}/api/docs.json`);
     console.log(`✅ Using Zod for validation`);
   } catch (err) {
     fastify.log.error(err);

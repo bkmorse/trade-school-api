@@ -1,0 +1,63 @@
+{
+  "TradeSchool": {
+    "type": "object",
+    "properties": {
+      "id": { "type": "integer", "description": "Internal database ID" },
+      "uuid": { "type": "string", "format": "uuid", "description": "Public UUID identifier" },
+      "name": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School name" },
+      "location": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School location" },
+      "programs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "description": "List of programs offered" },
+      "website": { "type": "string", "format": "uri", "description": "School website URL" },
+      "accredited": { "type": "boolean", "description": "Whether the school is accredited" },
+      "createdAt": { "type": "string", "format": "date-time", "description": "Creation timestamp" },
+      "updatedAt": { "type": "string", "format": "date-time", "description": "Last update timestamp" }
+    },
+    "required": ["id", "uuid", "name", "location", "programs", "website", "accredited"]
+  },
+  "CreateSchool": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School name" },
+      "location": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School location" },
+      "programs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "description": "List of programs offered" },
+      "website": { "type": "string", "format": "uri", "description": "School website URL" },
+      "accredited": { "type": "boolean", "default": true, "description": "Whether the school is accredited" }
+    },
+    "required": ["name", "location", "programs", "website"]
+  },
+  "UpdateSchool": {
+    "type": "object",
+    "properties": {
+      "name": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School name" },
+      "location": { "type": "string", "minLength": 1, "maxLength": 255, "description": "School location" },
+      "programs": { "type": "array", "items": { "type": "string", "minLength": 1 }, "minItems": 1, "description": "List of programs offered" },
+      "website": { "type": "string", "format": "uri", "description": "School website URL" },
+      "accredited": { "type": "boolean", "description": "Whether the school is accredited" }
+    },
+    "additionalProperties": false
+  },
+  "SchoolListResponse": {
+    "type": "object",
+    "properties": {
+      "data": {
+        "type": "array",
+        "items": { "$ref": "#/components/schemas/TradeSchool" },
+        "description": "Array of trade schools"
+      },
+      "meta": {
+        "type": "object",
+        "properties": {
+          "total": { "type": "integer", "minimum": 0, "description": "Total number of schools" },
+          "page": { "type": "integer", "minimum": 1, "description": "Current page number" },
+          "limit": { "type": "integer", "minimum": 1, "description": "Items per page" },
+          "lastPage": { "type": "integer", "minimum": 0, "description": "Last page number" },
+          "hasNextPage": { "type": "boolean", "description": "Whether there is a next page" },
+          "hasPreviousPage": { "type": "boolean", "description": "Whether there is a previous page" }
+        },
+        "required": ["total", "page", "limit", "lastPage", "hasNextPage", "hasPreviousPage"]
+      }
+    },
+    "required": ["data", "meta"]
+  }
+}
+

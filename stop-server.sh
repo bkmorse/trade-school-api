@@ -17,9 +17,9 @@ fi
 echo "  - Stopping any remaining Node.js processes..."
 pkill -f "node.*index.js" 2>/dev/null || true
 
-# Stop PostgreSQL container
-echo "🐘 Stopping PostgreSQL container..."
-npm run docker:down
+# Stop Docker services (API + Postgres if running via compose)
+echo "🐘 Stopping Docker services (api, postgres)..."
+docker compose down
 
 echo ""
 echo "✅ All services stopped successfully"

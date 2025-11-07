@@ -1,0 +1,50 @@
+{
+  "ProgramListResponse": {
+    "type": "object",
+    "properties": {
+      "count": { "type": "integer", "minimum": 0, "description": "Total number of unique programs" },
+      "programs": { "type": "array", "items": { "type": "string" }, "description": "List of unique program names" }
+    },
+    "required": ["count", "programs"]
+  },
+  "StatsResponse": {
+    "type": "object",
+    "properties": {
+      "totalSchools": { "type": "integer", "minimum": 0, "description": "Total number of trade schools" },
+      "accreditedSchools": { "type": "integer", "minimum": 0, "description": "Number of accredited schools" },
+      "totalPrograms": { "type": "integer", "minimum": 0, "description": "Total number of unique programs" }
+    },
+    "required": ["totalSchools", "accreditedSchools", "totalPrograms"]
+  },
+  "HealthCheckResponse": {
+    "type": "object",
+    "properties": {
+      "status": { "type": "string", "enum": ["healthy", "unhealthy"], "description": "Service health status" },
+      "database": { "type": "string", "enum": ["connected", "disconnected"], "description": "Database connection status" },
+      "timestamp": { "type": "string", "format": "date-time", "description": "Timestamp of the health check" }
+    },
+    "required": ["status", "database", "timestamp"]
+  },
+  "Error": {
+    "type": "object",
+    "properties": {
+      "statusCode": { "type": "integer", "description": "HTTP status code" },
+      "error": { "type": "string", "description": "Error type" },
+      "message": { "type": "string", "description": "Error message" },
+      "details": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "field": { "type": "string" },
+            "message": { "type": "string" },
+            "code": { "type": "string" }
+          }
+        },
+        "description": "Detailed validation errors (only present for validation errors)"
+      }
+    },
+    "required": ["statusCode", "error", "message"]
+  }
+}
+

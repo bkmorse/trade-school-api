@@ -1,11 +1,12 @@
 import tradeSchoolController from '../controllers/tradeSchoolController.js';
 import { zodRoute } from '../middleware/validation.js';
+import { requireAuth } from '../middleware/auth.js';
 import {
   tradeSchoolSchema,
   createSchoolSchema,
   updateSchoolSchema,
   schoolQuerySchema,
-  idParamSchema,
+  uuidParamSchema,
   schoolListResponseSchema,
   programListResponseSchema,
   statsResponseSchema
@@ -19,60 +20,79 @@ import {
  * @param {Object} options - Plugin options
  */
 export default async function tradeSchoolRoutes(fastify, options) {
-  // School CRUD routes with Zod validation
+  // School CRUD routes with Zod validation and authentication
+  const schoolsRouteOptions = zodRoute({
+    query: schoolQuerySchema,
+    response: schoolListResponseSchema
+  });
+
   fastify.get('/schools', {
-    ...zodRoute({
-      query: schoolQuerySchema,
-      response: schoolListResponseSchema
-    }),
+    ...schoolsRouteOptions,
+    preHandler: [requireAuth, ...(schoolsRouteOptions.preHandler || [])],
     handler: tradeSchoolController.getAllSchools
   });
 
-  fastify.get('/schools/:id', {
-    ...zodRoute({
-      params: idParamSchema,
-      response: tradeSchoolSchema
-    }),
+  const getSchoolByIdOptions = zodRoute({
+    params: uuidParamSchema,
+    response: tradeSchoolSchema
+  });
+
+  fastify.get('/schools/:uuid', {
+    ...getSchoolByIdOptions,
+    preHandler: [requireAuth, ...(getSchoolByIdOptions.preHandler || [])],
     handler: tradeSchoolController.getSchoolById
   });
 
+  const createSchoolOptions = zodRoute({
+    body: createSchoolSchema,
+    response: tradeSchoolSchema
+  });
+
   fastify.post('/schools', {
-    ...zodRoute({
-      body: createSchoolSchema,
-      response: tradeSchoolSchema
-    }),
+    ...createSchoolOptions,
+    preHandler: [requireAuth, ...(createSchoolOptions.preHandler || [])],
     handler: tradeSchoolController.createSchool
   });
 
-  fastify.put('/schools/:id', {
-    ...zodRoute({
-      params: idParamSchema,
-      body: updateSchoolSchema,
-      response: tradeSchoolSchema
-    }),
+  const updateSchoolOptions = zodRoute({
+    params: uuidParamSchema,
+    body: updateSchoolSchema,
+    response: tradeSchoolSchema
+  });
+
+  fastify.put('/schools/:uuid', {
+    ...updateSchoolOptions,
+    preHandler: [requireAuth, ...(updateSchoolOptions.preHandler || [])],
     handler: tradeSchoolController.updateSchool
   });
 
-  fastify.delete('/schools/:id', {
-    ...zodRoute({
-      params: idParamSchema
-    }),
+  const deleteSchoolOptions = zodRoute({
+    params: uuidParamSchema
+  });
+  
+  fastify.delete('/schools/:uuid', {
+    ...deleteSchoolOptions,
+    preHandler: [requireAuth, ...(deleteSchoolOptions.preHandler || [])],
     handler: tradeSchoolController.deleteSchool
   });
 
-  // Programs route
+  // Programs route (protected)
+  const programsOptions = zodRoute({
+    response: programListResponseSchema
+  });
   fastify.get('/programs', {
-    ...zodRoute({
-      response: programListResponseSchema
-    }),
+    ...programsOptions,
+    preHandler: [requireAuth, ...(programsOptions.preHandler || [])],
     handler: tradeSchoolController.getAllPrograms
   });
 
-  // Statistics route
+  // Statistics route (protected)
+  const statsOptions = zodRoute({
+    response: statsResponseSchema
+  });
   fastify.get('/stats', {
-    ...zodRoute({
-      response: statsResponseSchema
-    }),
+    ...statsOptions,
+    preHandler: [requireAuth, ...(statsOptions.preHandler || [])],
     handler: tradeSchoolController.getStats
   });
 }

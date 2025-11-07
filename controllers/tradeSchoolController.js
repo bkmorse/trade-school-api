@@ -23,12 +23,12 @@ class TradeSchoolController {
   }
 
   /**
-   * Get a single trade school by ID
+   * Get a single trade school by UUID
    */
   async getSchoolById(request, reply) {
-    const { id } = request.params;
+    const { uuid } = request.params;
     
-    const school = await tradeSchoolService.getSchoolById(id);
+    const school = await tradeSchoolService.getSchoolById(uuid);
     
     if (!school) {
       reply.code(404);
@@ -74,10 +74,10 @@ class TradeSchoolController {
    */
   async updateSchool(request, reply) {
     // Validation is handled automatically by schema
-    const { id } = request.params;
+    const { uuid } = request.params;
     const updateData = request.body;
     
-    const school = await tradeSchoolService.updateSchool(id, updateData);
+    const school = await tradeSchoolService.updateSchool(uuid, updateData);
     
     if (!school) {
       reply.code(404);
@@ -91,9 +91,9 @@ class TradeSchoolController {
    * Delete a trade school
    */
   async deleteSchool(request, reply) {
-    const { id } = request.params;
+    const { uuid } = request.params;
     
-    const deleted = await tradeSchoolService.deleteSchool(id);
+    const deleted = await tradeSchoolService.deleteSchool(uuid);
     
     if (!deleted) {
       reply.code(404);

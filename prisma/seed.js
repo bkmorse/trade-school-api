@@ -1,4 +1,5 @@
 import { PrismaClient } from '@prisma/client';
+import bcrypt from 'bcrypt';
 
 const prisma = new PrismaClient();
 
@@ -76,6 +77,30 @@ async function main() {
   }
 
   console.log(`✅ Seeded ${tradeSchoolsData.length} trade schools`);
+
+  // Create default user if it doesn't exist
+  const defaultUsername = 'admin';
+  const defaultPassword = 'password123';
+
+  const existingUser = await prisma.user.findUnique({
+    where: { username: defaultUsername }
+  });
+
+  if (!existingUser) {
+    const hashedPassword = await bcrypt.hash(defaultPassword, 10);
+    await prisma.user.create({
+      data: {
+        username: defaultUsername,
+        password: hashedPassword
+      }
+    });
+    console.log(`✅ Created default user: ${defaultUsername}`);
+    console.log(`   Username: ${defaultUsername}`);
+    console.log(`   Password: ${defaultPassword}`);
+    console.log('   ⚠️  Change this password in production!');
+  } else {
+    console.log(`ℹ️  User ${defaultUsername} already exists, skipping user creation`);
+  }
 }
 
 main()

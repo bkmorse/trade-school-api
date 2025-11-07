@@ -56,11 +56,12 @@ class TradeSchoolService {
   }
 
   /**
-   * Get a single trade school by ID
-   * @param {number} id - School ID
+   * Get a single trade school by UUID
+   * @param {string} uuid - School UUID
    * @returns {Promise<Object|null>} Trade school or null if not found
    */
   async getSchoolById(uuid) {
+    // Return all fields to match tradeSchoolSchema which requires both id and uuid
     return await tradeSchoolRepository.findUniqueByUuid({
       uuid
     });

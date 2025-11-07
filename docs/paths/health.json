@@ -1,0 +1,20 @@
+{
+  "/health": {
+    "get": {
+      "tags": ["Health"],
+      "summary": "Health check",
+      "description": "Check the health status of the API and database connection",
+      "responses": {
+        "200": {
+          "description": "Service health",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/HealthCheckResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

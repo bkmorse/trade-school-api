@@ -1,0 +1,20 @@
+{
+  "/api/stats": {
+    "get": {
+      "tags": ["Statistics"],
+      "summary": "Retrieve statistics",
+      "description": "Get aggregated statistics about trade schools, including total count, accredited schools, and program counts",
+      "responses": {
+        "200": {
+          "description": "Stats",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/StatsResponse" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

@@ -1,0 +1,166 @@
+{
+  "/api/schools": {
+    "get": {
+      "tags": ["Trade Schools"],
+      "summary": "List trade schools",
+      "description": "Get a paginated list of trade schools with optional filtering by program and location",
+      "parameters": [
+        { "name": "program", "in": "query", "description": "Filter by program name", "schema": { "type": "string" } },
+        { "name": "location", "in": "query", "description": "Filter by location (case-insensitive)", "schema": { "type": "string" } },
+        { "name": "page", "in": "query", "description": "Page number", "schema": { "type": "integer", "minimum": 1, "default": 1 } },
+        { "name": "limit", "in": "query", "description": "Items per page", "schema": { "type": "integer", "minimum": 1, "default": 15 } }
+      ],
+      "responses": {
+        "200": {
+          "description": "Paginated list of trade schools",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/SchoolListResponse" }
+            }
+          }
+        }
+      }
+    },
+    "post": {
+      "tags": ["Trade Schools"],
+      "summary": "Create a trade school",
+      "description": "Create a new trade school with the provided information",
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/CreateSchool" }
+          }
+        }
+      },
+      "responses": {
+        "201": {
+          "description": "Created school",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TradeSchool" }
+            }
+          }
+        },
+        "400": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Error" }
+            }
+          }
+        }
+      }
+    }
+  },
+  "/api/schools/{uuid}": {
+    "get": {
+      "tags": ["Trade Schools"],
+      "summary": "Get a school by UUID",
+      "description": "Retrieve a specific trade school by its UUID",
+      "parameters": [
+        {
+          "name": "uuid",
+          "in": "path",
+          "required": true,
+          "description": "Trade school UUID",
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "responses": {
+        "200": {
+          "description": "Trade school",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TradeSchool" }
+            }
+          }
+        },
+        "404": {
+          "description": "Not Found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Error" }
+            }
+          }
+        }
+      }
+    },
+    "put": {
+      "tags": ["Trade Schools"],
+      "summary": "Update a school",
+      "description": "Update an existing trade school by UUID",
+      "parameters": [
+        {
+          "name": "uuid",
+          "in": "path",
+          "required": true,
+          "description": "Trade school UUID",
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "requestBody": {
+        "required": true,
+        "content": {
+          "application/json": {
+            "schema": { "$ref": "#/components/schemas/UpdateSchool" }
+          }
+        }
+      },
+      "responses": {
+        "200": {
+          "description": "Updated school",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/TradeSchool" }
+            }
+          }
+        },
+        "404": {
+          "description": "School not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Error" }
+            }
+          }
+        },
+        "400": {
+          "description": "Validation Error",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Error" }
+            }
+          }
+        }
+      }
+    },
+    "delete": {
+      "tags": ["Trade Schools"],
+      "summary": "Delete a school",
+      "description": "Delete a trade school by UUID",
+      "parameters": [
+        {
+          "name": "uuid",
+          "in": "path",
+          "required": true,
+          "description": "Trade school UUID",
+          "schema": { "type": "string", "format": "uuid" }
+        }
+      ],
+      "responses": {
+        "204": {
+          "description": "School deleted successfully"
+        },
+        "404": {
+          "description": "School not found",
+          "content": {
+            "application/json": {
+              "schema": { "$ref": "#/components/schemas/Error" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
+

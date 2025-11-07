@@ -8,7 +8,8 @@ import { z } from 'zod';
 
 // Base trade school schema
 const tradeSchoolProperties = {
-  id: z.string().uuid("Invalid UUID format"),
+  id: z.number().int().positive("ID must be a positive number").transform(Number),
+  uuid: z.string().uuid("Invalid UUID format"),
   name: z.string().min(1).max(255).trim(),
   location: z.string().min(1).max(255).trim(),
   programs: z.array(z.string().min(1)).min(1),
@@ -62,6 +63,11 @@ export const idParamSchema = z.object({
   id: z.string().regex(/^\d+$/, "ID must be a number").transform(Number)
 });
 
+// URL parameters schema
+export const uuidParamSchema = z.object({
+  uuid: z.string().uuid("Invalid UUID format")
+});
+
 // Response schemas
 export const schoolListResponseSchema = z.object({
   data: z.array(tradeSchoolSchema),
@@ -101,8 +107,8 @@ export const errorResponseSchema = z.object({
 
 // Legacy exports for backward compatibility (if needed)
 export const getAllSchoolsSchema = schoolQuerySchema;
-export const getSchoolByIdSchema = idParamSchema;
-export const deleteSchoolSchema = idParamSchema;
+export const getSchoolByIdSchema = uuidParamSchema;
+export const deleteSchoolSchema = uuidParamSchema;
 export const getAllProgramsSchema = z.object({});
 export const getStatsSchema = z.object({});
 export const healthCheckSchema = z.object({});

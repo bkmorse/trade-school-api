@@ -1,0 +1,30 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Trade School API",
+    "version": "2.0.0",
+    "description": "HTTP API for managing trade schools, programs, and stats. Validation is performed with Zod in the server; this OpenAPI describes the request/response contracts for frontend consumers."
+  },
+  "servers": [
+    { "url": "http://localhost:3000", "description": "Local" }
+  ],
+  "tags": [
+    {
+      "name": "Health",
+      "description": "System health and status endpoints"
+    },
+    {
+      "name": "Trade Schools",
+      "description": "CRUD operations for trade schools"
+    },
+    {
+      "name": "Programs",
+      "description": "Program-related endpoints"
+    },
+    {
+      "name": "Statistics",
+      "description": "Statistics and analytics endpoints"
+    }
+  ]
+}
+

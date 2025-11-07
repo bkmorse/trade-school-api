@@ -27,9 +27,9 @@ if [ ! -d "node_modules" ]; then
   npm install
 fi
 
-# Start PostgreSQL container
+# Start only PostgreSQL container (API runs locally on host for dev)
 echo "🐘 Starting PostgreSQL container..."
-npm run docker:up
+docker compose up -d postgres
 
 # Wait for PostgreSQL to be healthy using Docker's healthcheck
 echo "⏳ Waiting for PostgreSQL to be ready..."
@@ -91,5 +91,7 @@ fi
 
 # Start the server
 echo "🚀 Starting server on http://localhost:3000"
+echo "📚 API docs UI:   http://localhost:3000/api/docs"
+echo "🧾 API docs JSON: http://localhost:3000/api/docs.json"
 npm run dev
 

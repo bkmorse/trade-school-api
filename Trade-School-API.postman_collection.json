@@ -1,11 +1,104 @@
 {
   "info": {
     "name": "Trade School API",
-    "description": "Complete API collection for Trade School endpoints with PostgreSQL and Prisma",
+    "description": "Complete API collection for Trade School endpoints with PostgreSQL and Prisma. Uses @fastify/jwt for secure JWT authentication. **Important**: Run the Login request first to get an authentication token, which will be automatically saved for all protected endpoints.",
     "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json",
     "_exporter_id": "trade-school-api"
   },
   "item": [
+    {
+      "name": "Authentication",
+      "item": [
+        {
+          "name": "Login",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    var jsonData = pm.response.json();",
+                  "    if (jsonData.token) {",
+                  "        pm.collectionVariables.set(\"authToken\", jsonData.token);",
+                  "        console.log(\"✅ Token saved successfully to collection variable: authToken\");",
+                  "        console.log(\"Token expires in: 7 days (default)\");",
+                  "    } else {",
+                  "        console.log(\"❌ No token in response\");",
+                  "    }",
+                  "} else {",
+                  "    console.log(\"❌ Login failed with status: \" + pm.response.code);",
+                  "    var errorData = pm.response.json();",
+                  "    if (errorData && errorData.message) {",
+                  "        console.log(\"Error: \" + errorData.message);",
+                  "    }",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"username\": \"admin\",\n  \"password\": \"password123\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/login",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "login"]
+            },
+            "description": "Login with username and password using JWT authentication (@fastify/jwt). The token is automatically saved to collection variables for use in subsequent requests. **Default credentials**: username: `admin`, password: `password123`"
+          },
+          "response": []
+        },
+        {
+          "name": "Logout",
+          "event": [
+            {
+              "listen": "test",
+              "script": {
+                "exec": [
+                  "if (pm.response.code === 200) {",
+                  "    // Clear the auth token from collection variables",
+                  "    pm.collectionVariables.set(\"authToken\", \"\");",
+                  "    console.log(\"✅ Logged out successfully - token cleared\");",
+                  "    console.log(\"⚠️  You will need to login again to access protected endpoints\");",
+                  "} else {",
+                  "    console.log(\"❌ Logout failed with status: \" + pm.response.code);",
+                  "}"
+                ],
+                "type": "text/javascript"
+              }
+            }
+          ],
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text",
+                "description": "Optional - if token is provided, it will be validated before logout"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/auth/logout",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "auth", "logout"]
+            },
+            "description": "Logout endpoint. Clears the authentication token. Note: JWTs are stateless, so logout is primarily client-side. This endpoint clears the token from Postman variables. Token in header is optional - if provided, it validates before logout."
+          },
+          "response": []
+        }
+      ]
+    },
     {
       "name": "Info",
       "item": [
@@ -19,7 +112,7 @@
               "host": ["{{baseUrl}}"],
               "path": [""]
             },
-            "description": "Get API information and available endpoints"
+            "description": "Get API information and available endpoints (no auth required)"
           },
           "response": []
         },
@@ -33,7 +126,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["health"]
             },
-            "description": "Check API and database connectivity"
+            "description": "Check API and database connectivity (no auth required)"
           },
           "response": []
         }
@@ -46,13 +139,19 @@
           "name": "Get All Schools",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/schools",
               "host": ["{{baseUrl}}"],
               "path": ["api", "schools"]
             },
-            "description": "Get all trade schools"
+            "description": "Get all trade schools (requires authentication)"
           },
           "response": []
         },
@@ -60,7 +159,13 @@
           "name": "Get All Schools - Filter by Program",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/schools?program=Welding",
               "host": ["{{baseUrl}}"],
@@ -73,7 +178,7 @@
                 }
               ]
             },
-            "description": "Get schools that offer a specific program (exact match)"
+            "description": "Get schools that offer a specific program (exact match, requires authentication)"
           },
           "response": []
         },
@@ -81,7 +186,13 @@
           "name": "Get All Schools - Filter by Location",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/schools?location=Virginia",
               "host": ["{{baseUrl}}"],
@@ -94,7 +205,7 @@
                 }
               ]
             },
-            "description": "Get schools in a specific location"
+            "description": "Get schools in a specific location (requires authentication)"
           },
           "response": []
         },
@@ -102,7 +213,13 @@
           "name": "Get All Schools - Multiple Filters",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/schools?program=Automotive&location=Illinois",
               "host": ["{{baseUrl}}"],
@@ -118,21 +235,66 @@
                 }
               ]
             },
-            "description": "Get schools filtered by both program and location"
+            "description": "Get schools filtered by both program and location (requires authentication)"
           },
           "response": []
         },
         {
-          "name": "Get School by ID",
+          "name": "Get All Schools - Pagination",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/schools/1",
+              "raw": "{{baseUrl}}/api/schools?page=1&limit=10",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "schools", "1"]
+              "path": ["api", "schools"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1",
+                  "description": "Page number"
+                },
+                {
+                  "key": "limit",
+                  "value": "10",
+                  "description": "Items per page"
+                }
+              ]
             },
-            "description": "Get a specific school by ID"
+            "description": "Get paginated list of schools (requires authentication)"
+          },
+          "response": []
+        },
+        {
+          "name": "Get School by UUID",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/api/schools/{{schoolUuid}}",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "schools", "{{schoolUuid}}"],
+              "variable": [
+                {
+                  "key": "schoolUuid",
+                  "value": "REPLACE_WITH_UUID",
+                  "description": "School UUID (get from list schools response)"
+                }
+              ]
+            },
+            "description": "Get a specific school by UUID (requires authentication with JWT Bearer token)"
           },
           "response": []
         },
@@ -144,6 +306,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -155,7 +322,7 @@
               "host": ["{{baseUrl}}"],
               "path": ["api", "schools"]
             },
-            "description": "Create a new trade school"
+            "description": "Create a new trade school (requires authentication with JWT Bearer token)"
           },
           "response": []
         },
@@ -167,6 +334,11 @@
               {
                 "key": "Content-Type",
                 "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
               }
             ],
             "body": {
@@ -174,11 +346,18 @@
               "raw": "{\n  \"location\": \"Updated Location, NY\",\n  \"programs\": [\n    \"Plumbing\",\n    \"HVAC\",\n    \"Electrical\",\n    \"Welding\"\n  ]\n}"
             },
             "url": {
-              "raw": "{{baseUrl}}/api/schools/1",
+              "raw": "{{baseUrl}}/api/schools/{{schoolUuid}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "schools", "1"]
+              "path": ["api", "schools", "{{schoolUuid}}"],
+              "variable": [
+                {
+                  "key": "schoolUuid",
+                  "value": "REPLACE_WITH_UUID",
+                  "description": "School UUID"
+                }
+              ]
             },
-            "description": "Update an existing school (all fields optional)"
+            "description": "Update an existing school by UUID (all fields optional, requires authentication with JWT Bearer token)"
           },
           "response": []
         },
@@ -186,13 +365,26 @@
           "name": "Delete School",
           "request": {
             "method": "DELETE",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
-              "raw": "{{baseUrl}}/api/schools/1",
+              "raw": "{{baseUrl}}/api/schools/{{schoolUuid}}",
               "host": ["{{baseUrl}}"],
-              "path": ["api", "schools", "1"]
+              "path": ["api", "schools", "{{schoolUuid}}"],
+              "variable": [
+                {
+                  "key": "schoolUuid",
+                  "value": "REPLACE_WITH_UUID",
+                  "description": "School UUID"
+                }
+              ]
             },
-            "description": "Delete a school by ID"
+            "description": "Delete a school by UUID (requires authentication with JWT Bearer token)"
           },
           "response": []
         }
@@ -205,13 +397,19 @@
           "name": "Get All Programs",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/programs",
               "host": ["{{baseUrl}}"],
               "path": ["api", "programs"]
             },
-            "description": "Get all unique programs offered across all schools"
+            "description": "Get all unique programs offered across all schools (requires authentication)"
           },
           "response": []
         }
@@ -224,13 +422,19 @@
           "name": "Get Statistics",
           "request": {
             "method": "GET",
-            "header": [],
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{authToken}}",
+                "type": "text"
+              }
+            ],
             "url": {
               "raw": "{{baseUrl}}/api/stats",
               "host": ["{{baseUrl}}"],
               "path": ["api", "stats"]
             },
-            "description": "Get statistics about trade schools and programs"
+            "description": "Get statistics about trade schools and programs (requires authentication)"
           },
           "response": []
         }
@@ -242,7 +446,16 @@
       "key": "baseUrl",
       "value": "http://localhost:3000",
       "type": "string"
+    },
+    {
+      "key": "authToken",
+      "value": "",
+      "type": "string"
+    },
+    {
+      "key": "schoolUuid",
+      "value": "",
+      "type": "string"
     }
   ]
 }
-
